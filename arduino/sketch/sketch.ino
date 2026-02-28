@@ -8,7 +8,7 @@ void set_led(bool state) {
 
 void setup() {
   Bridge.begin();
-  Serial.begin(9600); // Opens the serial port at 9600 bits per second
+  Serial.begin(9600);
 
   // Configure red LED pin as output, start with it off
   pinMode(LED_BUILTIN, OUTPUT);
