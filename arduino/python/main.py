@@ -1,45 +1,51 @@
 from arduino.app_utils import *
-from arduino.app_bricks.web_ui import WebUI
+from fall_detector import FallDetector
+from config import (
+    Y_DELTA_THRESHOLD,
+    FALLING_WINDOW_S,
+    Y_RANGE_THRESHOLD,
+    MIN_DIRECTIONAL_SAMPLES,
+    POST_FALL_OBSERVATION_S,
+    POST_FALL_Y_STD_THRESHOLD,
+    COOLDOWN_S,
+    SAMPLE_WINDOW_SIZE,
+    DEBUG,
+)
 
-# Create a logger for this app
-logger = Logger("red-light-control")
+logger = Logger("fall-alert")
 
-# Track current LED state
-led_state = {"on": False}
-
-# Instantiate WebUI brick for HTTP API
-web_ui = WebUI()
-
-
-def _turn_off():
-    """Turn on the red LED by calling into the Arduino sketch."""
-    logger.info("Turning red LED ON")
-    Bridge.call("set_led", True)
-    led_state["on"] = True
-    return {"status": "on"}
-
-
-def _turn_on():
-    """Turn off the red LED by calling into the Arduino sketch."""
-    logger.info("Turning red LED OFF")
-    Bridge.call("set_led", False)
-    led_state["on"] = False
-    return {"status": "off"}
-
-
-def _get_state():
-    """Return the current LED state."""
-    return {"state": "on" if led_state["on"] else "off"}
+fall_detector = FallDetector(
+    y_delta_threshold=Y_DELTA_THRESHOLD,
+    falling_window_s=FALLING_WINDOW_S,
+    y_range_threshold=Y_RANGE_THRESHOLD,
+    min_directional_samples=MIN_DIRECTIONAL_SAMPLES,
+    post_fall_observation_s=POST_FALL_OBSERVATION_S,
+    post_fall_y_std_threshold=POST_FALL_Y_STD_THRESHOLD,
+    cooldown_s=COOLDOWN_S,
+    sample_window_size=SAMPLE_WINDOW_SIZE,
+    debug=DEBUG,
+)
 
 
-# Expose HTTP endpoints
-web_ui.expose_api("POST", "/led/on", _turn_on)
-web_ui.expose_api("POST", "/led/off", _turn_off)
-web_ui.expose_api("GET", "/led", _get_state)
+def ping_ui_fall_detected():
+    logger.info("Fall confirmed, pinging UI")
 
-logger.info("Red light control server ready.")
-logger.info("  POST /led/on  -> turn red LED on")
-logger.info("  POST /led/off -> turn red LED off")
-logger.info("  GET  /led     -> get current state")
+
+def record_sensor_movement(x: float, y: float, z: float):
+    try:
+        fall_detected = fall_detector.process_sample(x, y, z)
+
+        if fall_detected:
+            ping_ui_fall_detected()
+
+    except Exception as e:
+        logger.exception(f"record_sensor_movement error: {e}")
+
+
+try:
+    Bridge.provide("record_sensor_movement", record_sensor_movement)
+except RuntimeError:
+    logger.debug("'record_sensor_movement' already registered")
+
 
 App.run()
