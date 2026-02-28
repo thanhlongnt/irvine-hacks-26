@@ -3,10 +3,12 @@
 // Handler called by Python via Bridge.call("set_led", state)
 void set_led(bool state) {
   digitalWrite(LED_BUILTIN, state ? HIGH : LOW);
+  Serial.println("changed value");
 }
 
 void setup() {
   Bridge.begin();
+  Serial.begin(9600); // Opens the serial port at 9600 bits per second
 
   // Configure red LED pin as output, start with it off
   pinMode(LED_BUILTIN, OUTPUT);
@@ -17,6 +19,4 @@ void setup() {
 }
 
 void loop() {
-  // Process any pending Bridge RPC calls from Python
-  Bridge.update();
 }
