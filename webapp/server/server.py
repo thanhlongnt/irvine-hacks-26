@@ -2,6 +2,7 @@ from flask import Flask
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import time
+import socket
 
 app = Flask(__name__)
 CORS(app, origins="*")
@@ -16,6 +17,12 @@ def fall_broadcaster():
         socketio.emit("fall_detected", 
                      {"message": "someone has fallen", "timestamp": time.time()}, 
                      namespace='/')
+
+
+@app.route("/")
+def hello_world():
+    print("[server] hello world")
+    return "Hello, World!"
 
 
 @socketio.on("connect")

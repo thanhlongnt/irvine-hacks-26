@@ -3,6 +3,7 @@ from arduino.app_bricks.web_ui import WebUI
 import requests
 import threading
 import time
+import os
 
 # Create a logger for this app
 logger = Logger("red-light-control")
@@ -43,7 +44,7 @@ web_ui.expose_api("GET", "/led", _get_state)
 def _ping():
     print("trying to ping")
     response = requests.get('https://google.com')
-    return {"content": response.text[:100]} # Just the first 100 characters
+    return {"content": response.text[:100]}
 
 web_ui.expose_api("GET", "/test", _ping)
 
@@ -52,11 +53,14 @@ logger.info("  POST /led/on  -> turn red LED on")
 logger.info("  POST /led/off -> turn red LED off")
 logger.info("  GET  /led     -> get current state")
 
+WEBAPP_HOST = os.environ.get("WEBAPP_HOST")
+
 def _poll_localhost():
     while True:
         try:
-            response = requests.get("http://localhost:3000")
+            response = requests.get(WEBAPP_HOST)
             logger.info(f"Localhost poll: {response.status_code}")
+            logger.info(f"Localhost text: {response.text}")
         except Exception as e:
             logger.info(f"Localhost poll failed: {e}")
         time.sleep(5)
