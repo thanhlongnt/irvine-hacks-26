@@ -1,0 +1,6 @@
+name: red-light-control
+description: Control a red LED on the Arduino UNO Q via a Python HTTP server
+ports: []
+bricks:
+- arduino:web_ui: {}
+icon: 🔴
