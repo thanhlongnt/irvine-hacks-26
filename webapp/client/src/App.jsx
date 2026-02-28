@@ -2,14 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import { io } from 'socket.io-client'
 
 const COLOR_STYLES = {
-  red: { background: '#f87171', text: '#7f1d1d' },
+  green:  { background: '#4ade80', text: '#14532d' },
   yellow: { background: '#fde047', text: '#713f12' },
-  green: { background: '#4ade80', text: '#14532d' },
+  red:    { background: '#f87171', text: '#7f1d1d' },
 }
 
 export default function App() {
   const [connected, setConnected] = useState(false)
-  const [streaming, setStreaming] = useState(false)
+  const [fallTime, setFallTime] = useState(null)
   const [colors, setColors] = useState([])
   const socketRef = useRef(null)
 
@@ -27,14 +27,20 @@ export default function App() {
       setConnected(false)
     })
 
-    socket.on('stream_status', (data) => {
-      setStreaming(data.streaming)
+    socket.on('fall_event', (data) => {
+      const time = new Date(data.timestamp * 1000).toLocaleTimeString()
+      setFallTime(time)
+      setColors([])
     })
 
     socket.on('color_update', (data) => {
-      console.log('[socket] color_update received:', data)
       const time = new Date(data.timestamp * 1000).toLocaleTimeString()
-      setColors((prev) => [{ time, color: data.color, id: Date.now() }, ...prev])
+      setColors((prev) => [...prev, { time, color: data.color, id: Date.now() }])
+    })
+
+    socket.on('fall_acknowledged', () => {
+      setFallTime(null)
+      setColors([])
     })
 
     return () => {
@@ -42,23 +48,33 @@ export default function App() {
     }
   }, [])
 
-  const handleStart = () => socketRef.current?.emit('start_stream')
-  const handleStop = () => socketRef.current?.emit('stop_stream')
+  const handleAcknowledge = () => socketRef.current?.emit('acknowledge_fall')
 
   return (
-    <div>
-      <h1>Color Monitor</h1>
+    <div style={{ fontFamily: 'sans-serif', maxWidth: '480px', margin: '2rem auto', padding: '0 1rem' }}>
+      <h1>Fall Detection Monitor</h1>
       <p style={{ color: connected ? '#4ade80' : '#f87171' }}>
         {connected ? 'Connected' : 'Disconnected'}
       </p>
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-        <button onClick={handleStart} disabled={!connected || streaming}>
-          Start Streaming
-        </button>
-        <button onClick={handleStop} disabled={!connected || !streaming}>
-          Stop Streaming
-        </button>
-      </div>
+
+      {fallTime ? (
+        <div style={{
+          padding: '1rem',
+          marginBottom: '1rem',
+          borderRadius: '6px',
+          background: '#fef2f2',
+          border: '2px solid #f87171',
+          color: '#7f1d1d',
+        }}>
+          <strong>Fall detected at {fallTime}</strong>
+          <div style={{ marginTop: '0.75rem' }}>
+            <button onClick={handleAcknowledge}>Acknowledge</button>
+          </div>
+        </div>
+      ) : (
+        <p style={{ color: '#6b7280' }}>Waiting for fall event...</p>
+      )}
+
       <ol style={{ padding: '0 1rem' }}>
         {colors.map((entry) => {
           const style = COLOR_STYLES[entry.color] ?? { background: '#e5e7eb', text: '#111' }
