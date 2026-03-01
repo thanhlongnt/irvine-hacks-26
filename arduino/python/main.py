@@ -3,6 +3,7 @@ from fall_detector import FallDetector
 from arduino.app_bricks.web_ui import WebUI
 from arduino.app_bricks.video_objectdetection import VideoObjectDetection
 from datetime import datetime, UTC
+import requests
 
 from config import (
     Y_DELTA_THRESHOLD,
@@ -20,7 +21,7 @@ logger = Logger("fall-alert")
 
 # Initialize WebUI and VideoObjectDetection
 ui = WebUI()
-detection_stream = VideoObjectDetection(confidence=0.3, debounce_sec=0.0)
+detection_stream = VideoObjectDetection(confidence=0.2, debounce_sec=0.0)
 
 # Allow UI to override detection threshold
 ui.on_message("override_th", lambda sid, threshold: detection_stream.override_threshold(threshold))
@@ -36,7 +37,22 @@ def send_detections_to_ui(detections: dict):
             }
             ui.send_message("detection", message=entry)
 
-detection_stream.on_detect_all(send_detections_to_ui)
+GOOD_THRESHOLD = 0.2
+
+def on_all_detections(detections: dict):
+    # Example: {"person": 0.87, "bicycle": 0.66}
+    # logger.info(f"All detections: {detections}")
+    if "good" in detections:
+        logger.info(f"thumbs up! {detections['good']}")
+        if any(d.get("confidence", 0) >= GOOD_THRESHOLD for d in detections["good"]):
+            try:
+                requests.post("http://192.168.12.156:8081/fall/cancel")
+                logger.info("Fall cancel request sent")
+            except Exception as e:
+                logger.warning(f"Failed to send fall cancel request: {e}")
+    send_detections_to_ui(detections)
+
+detection_stream.on_detect_all(on_all_detections)
 
 fall_detector = FallDetector(
     y_delta_threshold=Y_DELTA_THRESHOLD,

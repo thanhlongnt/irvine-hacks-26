@@ -1,22 +1,48 @@
+// SPDX-FileCopyrightText: Copyright (C) ARDUINO SRL (http://www.arduino.cc)
+//
+// SPDX-License-Identifier: MPL-2.0
+
+#include <Arduino_Modulino.h>
 #include <Arduino_RouterBridge.h>
 
-// Handler called by Python via Bridge.call("set_led", state)
-void set_led(bool state) {
-  digitalWrite(LED_BUILTIN, state ? HIGH : LOW);
-  Serial.println("changed value");
-}
+// Create a ModulinoMovement object
+ModulinoMovement movement;
+
+float x_accel, y_accel, z_accel; // Accelerometer values in g
+
+unsigned long previousMillis = 0; // Stores last time values were updated
+const long interval = 16;         // Interval at which to read (16ms) - sampling rate of 62.5Hz and should be adjusted based on model definition
+int has_movement = 0;             // Flag to indicate if movement data is available
 
 void setup() {
   Bridge.begin();
-  Serial.begin(9600);
 
-  // Configure red LED pin as output, start with it off
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
+  // Initialize Modulino I2C communication
+  Modulino.begin(Wire1);
 
-  // Register the handler so Python can call it
-  Bridge.provide("set_led", set_led);
+  // Detect and connect to movement sensor module
+  while (!movement.begin()) {
+    delay(1000);
+  }
 }
 
 void loop() {
+  unsigned long currentMillis = millis(); // Get the current time
+
+  if (currentMillis - previousMillis >= interval) {
+    // Save the last time you updated the values
+    previousMillis = currentMillis;
+
+    // Read new movement data from the sensor
+    has_movement = movement.update();
+    if(has_movement == 1) {
+      // Get acceleration values
+      x_accel = movement.getX();
+      y_accel = movement.getY();
+      z_accel = movement.getZ();
+    
+      Bridge.notify("record_sensor_movement", x_accel, y_accel, z_accel);      
+    }
+    
+  }
 }

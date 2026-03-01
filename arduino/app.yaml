@@ -1,6 +1,9 @@
-name: red-light-control
-description: Control a red LED on the Arduino UNO Q via a Python HTTP server
+name: Final Fall Detection Irvine Hacks
+description: Real-time Accelerometer data visualization and movement detection using Modulino Movement sensor
 ports: []
 bricks:
 - arduino:web_ui: {}
-icon: 🔴
+- arduino:motion_detection: {}
+- arduino:video_object_detection:
+    model: hand-gestures
+icon: 🐍

@@ -59,6 +59,17 @@ def on_connect():
         emit("color_update", {"color": current_color, "timestamp": time.time()})
 
 
+@app.route("/fall/cancel", methods=["POST"])
+def cancel_fall():
+    """Cancel/dismiss the active fall alert."""
+    global fall_time, current_color
+    fall_time = None
+    current_color = None
+    print("[server] Fall alert cancelled")
+    socketio.emit("fall_acknowledged", namespace='/')
+    return jsonify({"status": "ok"}), 200
+
+
 @socketio.on("acknowledge_fall")
 def on_acknowledge():
     global fall_time, current_color
