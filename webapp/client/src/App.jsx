@@ -52,14 +52,16 @@ export default function App() {
 
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: '900px', margin: '2rem auto', padding: '0 1rem' }}>
-      <iframe
-        src="http://192.168.12.133:4912/embed"
-        title="Live video feed"
-        width="100%"
-        height="480"
-        frameBorder="0"
-        style={{ display: 'block', borderRadius: '6px', background: '#111', marginBottom: '1.5rem' }}
-      />
+      {fallTime && (
+        <iframe
+          src="http://192.168.12.133:4912/embed"
+          title="Live video feed"
+          width="100%"
+          height="480"
+          frameBorder="0"
+          style={{ display: 'block', borderRadius: '6px', background: '#111', marginBottom: '1.5rem' }}
+        />
+      )}
       <h1>Fall Detection Monitor</h1>
       <p style={{ color: connected ? '#4ade80' : '#f87171' }}>
         {connected ? 'Connected' : 'Disconnected'}
