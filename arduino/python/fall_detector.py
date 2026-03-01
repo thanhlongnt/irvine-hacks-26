@@ -1,5 +1,6 @@
 import statistics
 import time
+import requests
 from collections import deque
 
 
@@ -167,6 +168,12 @@ class FallDetector:
                 self._log("Stage 3 PASSED | fall confirmed")
                 self._reset("fall confirmed")
                 print("Stage 3")
+
+                try:
+                    requests.post("http://192.168.12.156:8081/fall", timeout=3)
+                    self._log("Fall notification sent to server")
+                except Exception as e:
+                    self._log(f"Failed to notify server of fall: {e}")
 
                 return True
 
