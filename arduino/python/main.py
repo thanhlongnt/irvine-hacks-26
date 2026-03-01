@@ -1,5 +1,9 @@
 from arduino.app_utils import *
 from fall_detector import FallDetector
+from arduino.app_bricks.web_ui import WebUI
+from arduino.app_bricks.video_objectdetection import VideoObjectDetection
+from datetime import datetime, UTC
+
 from config import (
     Y_DELTA_THRESHOLD,
     FALLING_WINDOW_S,
@@ -13,6 +17,26 @@ from config import (
 )
 
 logger = Logger("fall-alert")
+
+# Initialize WebUI and VideoObjectDetection
+ui = WebUI()
+detection_stream = VideoObjectDetection(confidence=0.5, debounce_sec=0.0)
+
+# Allow UI to override detection threshold
+ui.on_message("override_th", lambda sid, threshold: detection_stream.override_threshold(threshold))
+
+# Callback to send detection results to UI
+def send_detections_to_ui(detections: dict):
+    for key, values in detections.items():
+        for value in values:
+            entry = {
+                "content": key,
+                "confidence": value.get("confidence"),
+                "timestamp": datetime.now(UTC).isoformat()
+            }
+            ui.send_message("detection", message=entry)
+
+detection_stream.on_detect_all(send_detections_to_ui)
 
 fall_detector = FallDetector(
     y_delta_threshold=Y_DELTA_THRESHOLD,
