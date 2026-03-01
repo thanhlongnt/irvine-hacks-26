@@ -20,7 +20,7 @@ logger = Logger("fall-alert")
 
 # Initialize WebUI and VideoObjectDetection
 ui = WebUI()
-detection_stream = VideoObjectDetection(confidence=0.5, debounce_sec=0.0)
+detection_stream = VideoObjectDetection(confidence=0.3, debounce_sec=0.0)
 
 # Allow UI to override detection threshold
 ui.on_message("override_th", lambda sid, threshold: detection_stream.override_threshold(threshold))
