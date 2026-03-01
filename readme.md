@@ -7,3 +7,6 @@
 * Web UI to display health
 
 red-light-control-20260228-094522
+
+fall guard
+safety alert
