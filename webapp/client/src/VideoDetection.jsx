@@ -6,8 +6,8 @@ const VIDEO_PORT = 4912
 const SOCKET_PORT = 7000
 
 export default function VideoDetection() {
-  const [boardHost, setBoardHost] = useState('192.168.12.133')
-  const [inputHost, setInputHost] = useState('192.168.12.133')
+  const [boardHost, setBoardHost] = useState('10.52.254.95')
+  const [inputHost, setInputHost] = useState('10.52.254.95')
   const [connected, setConnected] = useState(false)
   const [detections, setDetections] = useState([])
   const [confidence, setConfidence] = useState(0.5)

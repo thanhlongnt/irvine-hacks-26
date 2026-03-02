@@ -170,7 +170,7 @@ class FallDetector:
                 print("Stage 3")
 
                 try:
-                    requests.post("http://192.168.12.156:8081/fall", timeout=3)
+                    requests.post("http://10.52.254.184:8081/fall", timeout=3)
                     self._log("Fall notification sent to server")
                 except Exception as e:
                     self._log(f"Failed to notify server of fall: {e}")

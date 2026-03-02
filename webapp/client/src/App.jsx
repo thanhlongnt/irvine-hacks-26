@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { io } from 'socket.io-client'
 
-const VIDEO_URL = 'http://192.168.12.133:4912/embed'
+const VIDEO_URL = 'http://10.52.254.95:4912/embed'
 const VIDEO_TIMEOUT_MS = 10_000
 
 const COLOR_META = {

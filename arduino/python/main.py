@@ -46,7 +46,7 @@ def on_all_detections(detections: dict):
         logger.info(f"thumbs up! {detections['good']}")
         if any(d.get("confidence", 0) >= GOOD_THRESHOLD for d in detections["good"]):
             try:
-                requests.post("http://192.168.12.156:8081/fall/cancel")
+                requests.post("http://10.52.254.184:8081/fall/cancel")
                 logger.info("Fall cancel request sent")
             except Exception as e:
                 logger.warning(f"Failed to send fall cancel request: {e}")
